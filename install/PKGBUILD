@@ -1,0 +1,26 @@
+pkgname="pc_manager"
+pkgver="1.21.0"
+pkgrel="1"
+pkgdesc="Kuma Agent - Push PC status to Uptime Kuma"
+arch=("x86_64" "x86" "arm" "arm64")
+licence=("GPL3")
+source=("git+https://github.com/cameroncros/kuma_agent.git#tag=v1.0.0")
+sha512sums=('SKIP')
+
+build() {
+    cd pc_manager
+    cargo build --release
+}
+
+check() {
+    cd pc_manager
+    cargo test
+}
+
+package() {
+    cd pc_manager
+    mkdir -p $pkgdir/usr/bin
+    mkdir -p $pkgdir/usr/lib/systemd/system
+    cp target/release/pc_manager $pkgdir/usr/bin
+    cp install/pc_manager.service $pkgdir/usr/lib/systemd/system/
+}
