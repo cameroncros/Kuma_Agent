@@ -1,0 +1,10 @@
+[Unit]
+Description=Kuma Agent
+
+[Service]
+ExecStart=/usr/local/bin/kuma_agent
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,30 @@
+[package]
+name = "kuma_agent"
+version = "1.0.0"
+edition = "2021"
+description = "Kuma Agent"
+license-file = "LICENSE.txt"
+readme = "README.md"
+authors = ["Cameron Cross"]
+
+[package.metadata.deb.systemd-units]
+unit-scripts = "install"
+unit-name = "kuma_agent"
+
+[dependencies]
+serde_json = "1.0.107"
+reqwest = { version = "0.11.22", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+configparser = "3.0.2"
+
+[target.'cfg(unix)'.dependencies]
+cargo-deb = "1.39.3"
+ctrlc = "3.2.3"
+
+[target.'cfg(windows)'.dependencies]
+cargo-wix = "0.3.3"
+winapi = { version = "0.3.9", features = ["securitybaseapi", "winuser"] }
+windows-service = "0.6.0"
+
+[dev-dependencies]
+more-asserts = "0.3.1"
+tempfile = "3.8.0"

@@ -1,0 +1,26 @@
+pkgname="kuma_agent"
+pkgver="1.21.0"
+pkgrel="1"
+pkgdesc="Kuma Agent - Push PC status to Uptime Kuma"
+arch=("x86_64" "x86" "arm" "arm64")
+licence=("GPL3")
+source=("git+https://github.com/cameroncros/kuma_agent.git#tag=v1.0.0")
+sha512sums=('SKIP')
+
+build() {
+    cd kuma_agent
+    cargo build --release
+}
+
+check() {
+    cd kuma_agent
+    cargo test
+}
+
+package() {
+    cd kuma_agent
+    mkdir -p $pkgdir/usr/bin
+    mkdir -p $pkgdir/usr/lib/systemd/system
+    cp target/release/kuma_agent $pkgdir/usr/bin
+    cp install/kuma_agent.service $pkgdir/usr/lib/systemd/system/
+}
