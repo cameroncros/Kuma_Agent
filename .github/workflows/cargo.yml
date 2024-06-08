@@ -107,11 +107,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@master
         with:
-          name: pc_manager.msi
+          name: kuma_agent.msi
           path: ./
       - uses: actions/download-artifact@master
         with:
-          name: pc_manager.deb
+          name: kuma_agent.deb
           path: ./
       - uses: actions/download-artifact@master
         with:
