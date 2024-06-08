@@ -4,18 +4,20 @@ pub(crate) mod kuma_uptime_service {
         ffi::OsString,
         time::Duration,
     };
-    use std::sync::Arc;
-    use std::sync::atomic::{AtomicBool, Ordering};
+
+    use tokio::select;
+    use tokio_util::sync::CancellationToken;
     use windows_service::{
         define_windows_service,
+        Result,
         service::{
             ServiceControl, ServiceControlAccept, ServiceExitCode, ServiceState, ServiceStatus,
             ServiceType,
         },
-        service_control_handler::{self, ServiceControlHandlerResult},
-        service_dispatcher, Result,
+        service_control_handler::{self, ServiceControlHandlerResult}, service_dispatcher,
     };
-    use crate::mainloop;
+
+    use crate::{api, mainloop};
 
     const SERVICE_NAME: &str = "Kuma Agent";
     const SERVICE_TYPE: ServiceType = ServiceType::OWN_PROCESS;
@@ -36,14 +38,18 @@ pub(crate) mod kuma_uptime_service {
     // parameters. There is no stdout or stderr at this point so make sure to configure the log
     // output to file if needed.
     pub fn my_service_main(_arguments: Vec<OsString>) {
-        if let Err(_e) = run_service() {
-            // Handle the error, by logging or something.
-        }
+        tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(async {
+                run_service().await
+            }).unwrap();
     }
 
-    pub fn run_service() -> Result<()> {
+    pub async fn run_service() -> Result<()> {
         // Create a channel to be able to poll a stop event from the service worker loop.
-        let running = Arc::new(AtomicBool::new(true));
+        let running = CancellationToken::new();
         let r = running.clone();
 
         // Define system service event handler that will be receiving service events.
@@ -55,7 +61,7 @@ pub(crate) mod kuma_uptime_service {
 
                 // Handle stop
                 ServiceControl::Stop => {
-                    r.store(false, Ordering::SeqCst);
+                    r.cancel();
                     ServiceControlHandlerResult::NoError
                 }
 
@@ -78,7 +84,11 @@ pub(crate) mod kuma_uptime_service {
             process_id: None,
         })?;
 
-        mainloop(running);
+        select! {
+            () = mainloop() => {},
+            _ = api::api() => {},
+            () = running.cancelled() => {}
+        }
 
         // Tell the system that service has stopped.
         status_handle.set_service_status(ServiceStatus {

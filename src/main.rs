@@ -3,6 +3,8 @@ extern crate core;
 #[cfg(target_os = "windows")]
 mod winservice;
 mod mainloop;
+mod api;
+
 use crate::mainloop::mainloop;
 
 #[cfg(target_os = "windows")]
@@ -20,26 +22,41 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(target_os = "linux")]
 use ctrlc;
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use tokio::select;
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "linux")]
-fn main() {
-    let running = Arc::new(AtomicBool::new(true));
+#[tokio::main]
+async fn main() {
+    let running = CancellationToken::new();
     let r = running.clone();
 
     ctrlc::set_handler(move || {
-        r.store(false, Ordering::SeqCst);
+        r.cancel()
     }).expect("Error setting Ctrl-C handler");
 
-    mainloop(running);
+    select! {
+        () = mainloop() => {},
+        _ = api::api() => {},
+        () = running.cancelled() => {}
+    }
 }
 
 #[cfg(target_os = "macos")]
-use std::sync::Arc;
-#[cfg(target_os = "macos")]
-use std::sync::atomic::{AtomicBool};
+#[tokio::main]
+async fn main() {
+    let running = CancellationToken::new();
+    let r = running.clone();
 
-#[cfg(target_os = "macos")]
-fn main() {
-    let running = Arc::new(AtomicBool::new(true));
-    mainloop(running);
+    ctrlc::set_handler(move || {
+        r.cancel()
+    }).expect("Error setting Ctrl-C handler");
+
+    select! {
+        () = mainloop() => {},
+        _ = api::api() => {},
+        () = running.cancelled() => {}
+    }
 }
