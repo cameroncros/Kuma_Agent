@@ -2,7 +2,7 @@
 Description=Kuma Agent
 
 [Service]
-ExecStart=/usr/local/bin/kuma_agent
+ExecStart=/usr/bin/kuma_agent
 Restart=on-failure
 RestartSec=5s
 
