@@ -32,4 +32,5 @@ package() {
     cd kuma_agent
     install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
     install -Dm0755 -t "$pkgdir/usr/lib/systemd/system/" "install/kuma_agent.service"
+    install -Dm0755 -t "$pkgdir/etc/" "install/kuma_agent.conf"
 }
