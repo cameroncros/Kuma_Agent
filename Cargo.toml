@@ -19,6 +19,8 @@ tokio = { version = "1", features = ["full"] }
 tokio-util = "0.7.11"
 system_shutdown = "4.0.1"
 actix-web = "4.8.0"
+utoipa = { version="5.0.0-alpha.0", features = ["actix_extras"] }
+utoipa-swagger-ui = { version= "7.1.1-alpha.0", features = ["actix-web"] }
 
 [target.'cfg(unix)'.dependencies]
 #cargo-deb = "1.44.1"
